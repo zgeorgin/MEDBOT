@@ -7,7 +7,6 @@ from Strings import *
 import sqlite3
 bot = telebot.TeleBot('7941203917:AAFi_nyJaxG9s5H1FWagx65oKYzvrjMAHh8')
 medical_chat_id = -4574195928
-chat_bot = None
 
 connection = sqlite3.connect('Medbot.db')
 cursor = connection.cursor()
@@ -38,7 +37,6 @@ PRICE INTEGER
 all_users_states = {}
 @bot.message_handler(commands = ['start'])
 def start(message):
-    global chat_bot
     global all_users_states
     connection_start= sqlite3.connect('Medbot.db')
     cursor_start = connection_start.cursor()
@@ -58,12 +56,12 @@ def start(message):
     keyboard = types.ReplyKeyboardMarkup()
     keyboard.add(btn1, btn2, btn3, btn4)
     bot.send_message(message.chat.id, bot_greetings, reply_markup=keyboard)
-    all_users_states[message.chat.id] = {"started":True}
+    all_users_states[message.chat.id] = {"started":True, "Bot":chat_bot}
 
 @bot.message_handler(content_types=['text'])
 def main(message):
     global all_users_states
-    global chat_bot
+    chat_bot = all_users_states[message.chat.id]["Bot"]
     print(message.from_user.username)
     if message.text == "Экстренный вызов":
         bot.send_message(message.chat.id, bot_emergency)
@@ -78,7 +76,7 @@ def main(message):
         return
     if message.text == "Консультация с дежурным врачом":
         bot.send_message(message.chat.id, text=bot_consultation_message)
-        chat_bot.add_message("Напиши краткую сводку по моему состоянию именно в таком виде, в котором её можно будет отправить врачув")
+        chat_bot.add_message("Напиши краткую сводку по моему состоянию именно в таком виде, в котором её можно будет отправить врачу")
         bot.send_message(medical_chat_id, text=f"Пользователь {message.from_user.username} нуждается в помощи! Состояние: {chat_bot.get_answer()}")
         return
     if message.text == "Запись к врачу":
@@ -94,6 +92,29 @@ def main(message):
         bot.send_message(message.chat.id, "Спасибо, что воспользовались нашими услугами!")
         chat_bot = None
         all_users_states[message.chat.id]["started"] = False
+
+    if message.text == "Начать диалог":
+        connection_start = sqlite3.connect('Medbot.db')
+        cursor_start = connection_start.cursor()
+        cursor_start.execute("SELECT id FROM Users WHERE chat = ?", (message.chat.id,))
+        data = cursor_start.fetchall()
+        if len(data) == 0:
+            cursor_start.execute('INSERT INTO Users (username, chat) VALUES (?, ?)',
+                                 (message.from_user.username, message.chat.id))
+        connection_start.commit()
+        connection_start.close()
+        chat_bot = Chat()
+        prompt = Prompt
+        chat_bot.start_chat(prompt)
+        btn1 = types.KeyboardButton(text="Экстренный вызов")
+        btn2 = types.KeyboardButton(text="Медицинская консультация")
+        btn3 = types.KeyboardButton(text="Информация о клинике")
+        btn4 = types.KeyboardButton(text="Обратная связь")
+        keyboard = types.ReplyKeyboardMarkup()
+        keyboard.add(btn1, btn2, btn3, btn4)
+        bot.send_message(message.chat.id, bot_greetings, reply_markup=keyboard)
+        all_users_states[message.chat.id] = {"started": True}
+        return
     if chat_bot is None:
         pass
 
@@ -107,7 +128,7 @@ def main(message):
     else:
         btn1 = types.KeyboardButton("Начать диалог")
         markup.add(btn1)
-        bot.send_message(message.chat.id, text = "", reply_markup=markup)
+        bot.send_message(message.chat.id, text = "Хотите начать новый диалог?", reply_markup=markup)
 
 
 
