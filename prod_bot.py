@@ -1,4 +1,3 @@
-
 import telebot
 #from aiogram.types import ReplyKeyboardRemove, ReplyKeyboardMarkup, KeyboardButton
 from telebot import types
@@ -8,6 +7,7 @@ import sqlite3
 bot = telebot.TeleBot('7941203917:AAFi_nyJaxG9s5H1FWagx65oKYzvrjMAHh8')
 medical_chat_id = -4574195928
 all_users_states = {}
+
 def start_dialog(message):
     global all_users_states
     connection_start = sqlite3.connect('Medbot.db')
@@ -29,7 +29,8 @@ def start_dialog(message):
     keyboard = types.ReplyKeyboardMarkup()
     keyboard.add(btn1, btn2, btn3, btn4)
     bot.send_message(message.chat.id, bot_greetings, reply_markup=keyboard)
-    all_users_states[message.chat.id] = {"started": True, "Bot": chat_bot}
+    all_users_states[message.chat.id] = {"started": True, "Bot": chat_bot, "ready": True, "Vote":[-1, -1, -1, -1]}
+
 connection = sqlite3.connect('Medbot.db')
 cursor = connection.cursor()
 cursor.execute('''
@@ -66,6 +67,16 @@ def main(message):
     global all_users_states
     if message.chat.id not in all_users_states.keys():
         start_dialog(message)
+    connection_start = sqlite3.connect('Medbot.db')
+    cursor_start = connection_start.cursor()
+    cursor.execute(f"SELECT Chat FROM Chats WHERE username = {message.from_user.username}")
+    data = cursor_start.fetchall()
+    if len(data) == 0:
+        cursor_start.execute('INSERT INTO Chats (username, chat) VALUES (?, ?)',
+                             (message.from_user.username, message.text))
+    else:
+        data += "\n" + message.text
+        cursor_start.execute(f'UPDATE Chats SET chat = {data} WHERE username = {message.from_user.username}')
     chat_bot = all_users_states[message.chat.id]["Bot"]
     print(message.from_user.username)
     if message.text == "Экстренный вызов":
@@ -92,7 +103,36 @@ def main(message):
         return
     if message.text == "Обратная связь":
         bot.send_message(message.chat.id, bot_vote_message)
+        markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+        btn1 = types.KeyboardButton("0")
+        btn2 = types.KeyboardButton("1")
+        btn3 = types.KeyboardButton("2")
+        markup.add(btn1, btn2, btn3)
+        bot.send_message(message.chat.id, bot_marks[0], reply_markup=markup)
+        all_users_states[message.chat.id]['ready'] = False
+        all_users_states[message.chat.id]['Vote'][0] = -2
         return
+    if message.text in ['1', '2', '3'] and not all_users_states[message.chat.id]['ready']:
+        connection_start = sqlite3.connect('Medbot.db')
+        cursor_start = connection_start.cursor()
+        marks = all_users_states[message.chat.id]['Vote']
+        for i in range(len(marks)):
+            if marks[i] == -2:
+                marks[i] = int(message.text)
+                if i == len(marks) - 1:
+                    cursor_start.execute('INSERT INTO Marks (username, SPEED, COMFORT, EMOTION, PRICE) VALUES (?, ?, ?, ?, ?)',
+                                         (message.from_user.username, marks[0], marks[1], marks[2], marks[3]))
+                    all_users_states[message.chat.id]['ready'] = True
+                    return
+                markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+                btn1 = types.KeyboardButton("0")
+                btn2 = types.KeyboardButton("1")
+                btn3 = types.KeyboardButton("2")
+                markup.add(btn1, btn2, btn3)
+                bot.send_message(message.chat.id, bot_marks[i + 1], reply_markup=markup)
+                marks[i + 1] = -2
+                return
+
     if message.text == "Закончить диалог":
         bot.send_message(message.chat.id, "Спасибо, что воспользовались нашими услугами!")
         chat_bot = None
@@ -105,12 +145,17 @@ def main(message):
         pass
 
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    if not all_users_states[message.chat.id]['ready']:
+        pass
     if all_users_states[message.chat.id]["started"]:
         btn1 = types.KeyboardButton("Закончить диалог")
         btn2 = types.KeyboardButton("Консультация с дежурным врачом")
         chat_bot.add_message(message.text)
         markup.add(btn1, btn2)
-        bot.send_message(message.chat.id, chat_bot.get_answer(), reply_markup=markup)
+        answer = chat_bot.get_answer()
+        bot.send_message(message.chat.id, answer, reply_markup=markup)
+        data += "\n" + answer
+        cursor_start.execute(f'UPDATE Chats SET chat = {data} WHERE username = {message.from_user.username}')
     else:
         btn1 = types.KeyboardButton("Начать диалог")
         markup.add(btn1)
