@@ -7,7 +7,29 @@ from Strings import *
 import sqlite3
 bot = telebot.TeleBot('7941203917:AAFi_nyJaxG9s5H1FWagx65oKYzvrjMAHh8')
 medical_chat_id = -4574195928
-
+all_users_states = {}
+def start_dialog(message):
+    global all_users_states
+    connection_start = sqlite3.connect('Medbot.db')
+    cursor_start = connection_start.cursor()
+    cursor_start.execute("SELECT id FROM Users WHERE chat = ?", (message.chat.id,))
+    data = cursor_start.fetchall()
+    if len(data) == 0:
+        cursor_start.execute('INSERT INTO Users (username, chat) VALUES (?, ?)',
+                             (message.from_user.username, message.chat.id))
+    connection_start.commit()
+    connection_start.close()
+    chat_bot = Chat()
+    prompt = Prompt
+    chat_bot.start_chat(prompt)
+    btn1 = types.KeyboardButton(text="Экстренный вызов")
+    btn2 = types.KeyboardButton(text="Медицинская консультация")
+    btn3 = types.KeyboardButton(text="Информация о клинике")
+    btn4 = types.KeyboardButton(text="Обратная связь")
+    keyboard = types.ReplyKeyboardMarkup()
+    keyboard.add(btn1, btn2, btn3, btn4)
+    bot.send_message(message.chat.id, bot_greetings, reply_markup=keyboard)
+    all_users_states[message.chat.id] = {"started": True, "Bot": chat_bot}
 connection = sqlite3.connect('Medbot.db')
 cursor = connection.cursor()
 cursor.execute('''
@@ -34,33 +56,16 @@ EMOTION INTEGER
 PRICE INTEGER
 )
 ''')
-all_users_states = {}
+
 @bot.message_handler(commands = ['start'])
 def start(message):
-    global all_users_states
-    connection_start= sqlite3.connect('Medbot.db')
-    cursor_start = connection_start.cursor()
-    cursor_start.execute("SELECT id FROM Users WHERE chat = ?", (message.chat.id,))
-    data = cursor_start.fetchall()
-    if len(data) == 0:
-        cursor_start.execute('INSERT INTO Users (username, chat) VALUES (?, ?)', (message.from_user.username, message.chat.id))
-    connection_start.commit()
-    connection_start.close()
-    chat_bot = Chat()
-    prompt = Prompt
-    chat_bot.start_chat(prompt)
-    btn1 = types.KeyboardButton(text="Экстренный вызов")
-    btn2 = types.KeyboardButton(text="Медицинская консультация")
-    btn3 = types.KeyboardButton(text="Информация о клинике")
-    btn4 = types.KeyboardButton(text="Обратная связь")
-    keyboard = types.ReplyKeyboardMarkup()
-    keyboard.add(btn1, btn2, btn3, btn4)
-    bot.send_message(message.chat.id, bot_greetings, reply_markup=keyboard)
-    all_users_states[message.chat.id] = {"started":True, "Bot":chat_bot}
+    start_dialog(message)
 
 @bot.message_handler(content_types=['text'])
 def main(message):
     global all_users_states
+    if message.chat.id not in all_users_states.keys():
+        start_dialog(message)
     chat_bot = all_users_states[message.chat.id]["Bot"]
     print(message.from_user.username)
     if message.text == "Экстренный вызов":
@@ -94,26 +99,7 @@ def main(message):
         all_users_states[message.chat.id]["started"] = False
 
     if message.text == "Начать диалог":
-        connection_start = sqlite3.connect('Medbot.db')
-        cursor_start = connection_start.cursor()
-        cursor_start.execute("SELECT id FROM Users WHERE chat = ?", (message.chat.id,))
-        data = cursor_start.fetchall()
-        if len(data) == 0:
-            cursor_start.execute('INSERT INTO Users (username, chat) VALUES (?, ?)',
-                                 (message.from_user.username, message.chat.id))
-        connection_start.commit()
-        connection_start.close()
-        chat_bot = Chat()
-        prompt = Prompt
-        chat_bot.start_chat(prompt)
-        btn1 = types.KeyboardButton(text="Экстренный вызов")
-        btn2 = types.KeyboardButton(text="Медицинская консультация")
-        btn3 = types.KeyboardButton(text="Информация о клинике")
-        btn4 = types.KeyboardButton(text="Обратная связь")
-        keyboard = types.ReplyKeyboardMarkup()
-        keyboard.add(btn1, btn2, btn3, btn4)
-        bot.send_message(message.chat.id, bot_greetings, reply_markup=keyboard)
-        all_users_states[message.chat.id] = {"started": True, "Bot":chat_bot}
+        start_dialog(message)
         return
     if chat_bot is None:
         pass
