@@ -113,7 +113,7 @@ def main(message):
         keyboard = types.ReplyKeyboardMarkup()
         keyboard.add(btn1, btn2, btn3, btn4)
         bot.send_message(message.chat.id, bot_greetings, reply_markup=keyboard)
-        all_users_states[message.chat.id] = {"started": True}
+        all_users_states[message.chat.id] = {"started": True, "Bot":chat_bot}
         return
     if chat_bot is None:
         pass
