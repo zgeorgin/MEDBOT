@@ -69,6 +69,8 @@ def start(message):
 
 @bot.message_handler(content_types=['text'])
 def main(message):
+    if message.chat.id == medical_chat_id:
+        return
     global all_users_states
     if message.chat.id not in all_users_states.keys():
         start_dialog(message)
@@ -165,7 +167,7 @@ def main(message):
         start_dialog(message)
         return
     if chat_bot is None:
-        pass
+        return
 
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     if not all_users_states[message.chat.id]['ready']:
@@ -188,7 +190,8 @@ def main(message):
             connection_user.close()
     else:
         btn1 = types.KeyboardButton("Начать диалог")
-        markup.add(btn1)
+        btn2 = types.KeyboardButton("Обратная связь")
+        markup.add(btn1, btn2)
         bot.send_message(message.chat.id, text = "Хотите начать новый диалог?", reply_markup=markup)
 
 
