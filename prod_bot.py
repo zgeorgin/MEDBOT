@@ -67,8 +67,8 @@ def main(message):
     global all_users_states
     if message.chat.id not in all_users_states.keys():
         start_dialog(message)
-    connection_start = sqlite3.connect('Medbot.db')
-    cursor_start = connection_start.cursor()
+    connection_main = sqlite3.connect('Medbot.db')
+    cursor_start = connection_main.cursor()
     cursor.execute(f"SELECT Chat FROM Chats WHERE username = {message.from_user.username}")
     data = cursor_start.fetchall()
     if len(data) == 0:
@@ -77,6 +77,8 @@ def main(message):
     else:
         data += "\n" + message.text
         cursor_start.execute(f'UPDATE Chats SET chat = {data} WHERE username = {message.from_user.username}')
+    connection_main.commit()
+    connection_main.close()
     chat_bot = all_users_states[message.chat.id]["Bot"]
     print(message.from_user.username)
     if message.text == "Экстренный вызов":
@@ -113,16 +115,17 @@ def main(message):
         all_users_states[message.chat.id]['Vote'][0] = -2
         return
     if message.text in ['1', '2', '3'] and not all_users_states[message.chat.id]['ready']:
-        connection_start = sqlite3.connect('Medbot.db')
-        cursor_start = connection_start.cursor()
         marks = all_users_states[message.chat.id]['Vote']
         for i in range(len(marks)):
             if marks[i] == -2:
                 marks[i] = int(message.text)
                 if i == len(marks) - 1:
+                    connection_vote = sqlite3.connect('Medbot.db')
+                    cursor_start = connection_vote.cursor()
                     cursor_start.execute('INSERT INTO Marks (username, SPEED, COMFORT, EMOTION, PRICE) VALUES (?, ?, ?, ?, ?)',
                                          (message.from_user.username, marks[0], marks[1], marks[2], marks[3]))
                     all_users_states[message.chat.id]['ready'] = True
+                    connection_vote.commit()
                     return
                 markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
                 btn1 = types.KeyboardButton("0")
@@ -148,6 +151,8 @@ def main(message):
     if not all_users_states[message.chat.id]['ready']:
         pass
     if all_users_states[message.chat.id]["started"]:
+        connection_user = sqlite3.connect('Medbot.db')
+        cursor_start = connection_user.cursor()
         btn1 = types.KeyboardButton("Закончить диалог")
         btn2 = types.KeyboardButton("Консультация с дежурным врачом")
         chat_bot.add_message(message.text)
@@ -156,6 +161,8 @@ def main(message):
         bot.send_message(message.chat.id, answer, reply_markup=markup)
         data += "\n" + answer
         cursor_start.execute(f'UPDATE Chats SET chat = {data} WHERE username = {message.from_user.username}')
+        connection_user.commit()
+        connection_user.close()
     else:
         btn1 = types.KeyboardButton("Начать диалог")
         markup.add(btn1)
