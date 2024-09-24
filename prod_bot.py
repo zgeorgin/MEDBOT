@@ -79,7 +79,6 @@ def main(message):
         cursor_start = connection_main.cursor()
         cursor_start.execute(f"SELECT Chat FROM Chats WHERE username = '{message.from_user.username}'")
         data = cursor_start.fetchall()
-        print(data)
         if len(data) == 0:
             cursor_start.execute('INSERT INTO Chats (username, chat) VALUES (?, ?)',
                                  (message.from_user.username, message.text))
