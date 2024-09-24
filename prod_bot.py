@@ -166,12 +166,10 @@ def main(message):
     if message.text == "Начать диалог":
         start_dialog(message)
         return
-    if chat_bot is None:
-        return
 
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
     if not all_users_states[message.chat.id]['ready']:
-        pass
+        return
     if all_users_states[message.chat.id]["started"]:
         btn1 = types.KeyboardButton("Закончить диалог")
         btn2 = types.KeyboardButton("Консультация с дежурным врачом")
