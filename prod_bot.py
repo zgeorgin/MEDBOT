@@ -122,7 +122,8 @@ def main(message):
         btn1 = types.KeyboardButton("0")
         btn2 = types.KeyboardButton("1")
         btn3 = types.KeyboardButton("2")
-        markup.add(btn1, btn2, btn3)
+        btn4 = types.KeyboardButton("Возврат в главное меню")
+        markup.add(btn1, btn2, btn3, btn4)
         bot.send_message(message.chat.id, bot_marks[0], reply_markup=markup)
         all_users_states[message.chat.id]['ready'] = False
         all_users_states[message.chat.id]['Vote'][0] = -2
@@ -149,7 +150,8 @@ def main(message):
                 btn1 = types.KeyboardButton("0")
                 btn2 = types.KeyboardButton("1")
                 btn3 = types.KeyboardButton("2")
-                markup.add(btn1, btn2, btn3)
+                btn4 = types.KeyboardButton("Возврат в главное меню")
+                markup.add(btn1, btn2, btn3, btn4)
                 bot.send_message(message.chat.id, bot_marks[i + 1], reply_markup=markup)
                 marks[i + 1] = -2
                 return
