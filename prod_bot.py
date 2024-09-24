@@ -83,7 +83,7 @@ def main(message):
                                  (message.from_user.username, message.text))
         else:
             data += "\n" + message.text
-            cursor_start.execute(f'UPDATE Chats SET chat = "{data}" WHERE username = "{message.from_user.username}"')
+            cursor_start.execute(f"UPDATE Chats SET chat = '{data}' WHERE username = '{message.from_user.username}'")
         connection_main.commit()
         connection_main.close()
     chat_bot = all_users_states[message.chat.id]["Bot"]
