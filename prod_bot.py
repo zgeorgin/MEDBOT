@@ -76,14 +76,14 @@ def main(message):
     with lock:
         connection_main = sqlite3.connect('Medbot.db')
         cursor_start = connection_main.cursor()
-        cursor_start.execute(f"SELECT Chat FROM Chats WHERE username = {message.from_user.username}")
+        cursor_start.execute(f"SELECT Chat FROM Chats WHERE username = '{message.from_user.username}'")
         data = cursor_start.fetchall()
         if len(data) == 0:
             cursor_start.execute('INSERT INTO Chats (username, chat) VALUES (?, ?)',
                                  (message.from_user.username, message.text))
         else:
             data += "\n" + message.text
-            cursor_start.execute(f'UPDATE Chats SET chat = {data} WHERE username = {message.from_user.username}')
+            cursor_start.execute(f'UPDATE Chats SET chat = "{data}" WHERE username = "{message.from_user.username}"')
         connection_main.commit()
         connection_main.close()
     chat_bot = all_users_states[message.chat.id]["Bot"]
