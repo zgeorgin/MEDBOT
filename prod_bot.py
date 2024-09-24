@@ -1,5 +1,4 @@
 import telebot
-#from aiogram.types import ReplyKeyboardRemove, ReplyKeyboardMarkup, KeyboardButton
 from telebot import types
 import threading
 from model2 import Chat
@@ -109,7 +108,7 @@ def main(message):
         return
     if message.text == "Консультация с дежурным врачом":
         bot.send_message(message.chat.id, text=bot_consultation_message)
-        chat_bot.add_message("Напиши краткую сводку по моему состоянию именно в таком виде, в котором её можно будет отправить врачу")
+        chat_bot.add_message("Напиши краткую сводку по моему состоянию именно в таком виде, в котором её можно будет отправить врачу. Если данных недостаточно, напиши 'Данных о пациенте недостаточно'")
         bot.send_message(medical_chat_id, text=f"Пользователь {message.from_user.username} нуждается в помощи! Состояние: {chat_bot.get_answer()}")
         return
     if message.text == "Запись к врачу":
@@ -130,7 +129,7 @@ def main(message):
         all_users_states[message.chat.id]['ready'] = False
         all_users_states[message.chat.id]['Vote'][0] = -2
         return
-    if message.text in ['1', '2', '3'] and not all_users_states[message.chat.id]['ready']:
+    if message.text in ['0', '1', '2'] and not all_users_states[message.chat.id]['ready']:
         marks = all_users_states[message.chat.id]['Vote']
         for i in range(len(marks)):
             if marks[i] == -2:
