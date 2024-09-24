@@ -76,7 +76,7 @@ def main(message):
     with lock:
         connection_main = sqlite3.connect('Medbot.db')
         cursor_start = connection_main.cursor()
-        cursor.execute(f"SELECT Chat FROM Chats WHERE username = {message.from_user.username}")
+        cursor_start.execute(f"SELECT Chat FROM Chats WHERE username = {message.from_user.username}")
         data = cursor_start.fetchall()
         if len(data) == 0:
             cursor_start.execute('INSERT INTO Chats (username, chat) VALUES (?, ?)',
