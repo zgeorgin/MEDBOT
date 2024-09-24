@@ -1,36 +1,13 @@
 import telebot
 #from aiogram.types import ReplyKeyboardRemove, ReplyKeyboardMarkup, KeyboardButton
 from telebot import types
+import threading
 from model2 import Chat
 from Strings import *
 import sqlite3
 bot = telebot.TeleBot('7941203917:AAFi_nyJaxG9s5H1FWagx65oKYzvrjMAHh8')
 medical_chat_id = -4574195928
 all_users_states = {}
-
-def start_dialog(message):
-    global all_users_states
-    connection_start = sqlite3.connect('Medbot.db')
-    cursor_start = connection_start.cursor()
-    cursor_start.execute("SELECT id FROM Users WHERE chat = ?", (message.chat.id,))
-    data = cursor_start.fetchall()
-    if len(data) == 0:
-        cursor_start.execute('INSERT INTO Users (username, chat) VALUES (?, ?)',
-                             (message.from_user.username, message.chat.id))
-    connection_start.commit()
-    connection_start.close()
-    chat_bot = Chat()
-    prompt = Prompt
-    chat_bot.start_chat(prompt)
-    btn1 = types.KeyboardButton(text="Экстренный вызов")
-    btn2 = types.KeyboardButton(text="Медицинская консультация")
-    btn3 = types.KeyboardButton(text="Информация о клинике")
-    btn4 = types.KeyboardButton(text="Обратная связь")
-    keyboard = types.ReplyKeyboardMarkup()
-    keyboard.add(btn1, btn2, btn3, btn4)
-    bot.send_message(message.chat.id, bot_greetings, reply_markup=keyboard)
-    all_users_states[message.chat.id] = {"started": True, "Bot": chat_bot, "ready": True, "Vote":[-1, -1, -1, -1]}
-
 connection = sqlite3.connect('Medbot.db')
 cursor = connection.cursor()
 cursor.execute('''
@@ -57,6 +34,34 @@ EMOTION INTEGER
 PRICE INTEGER
 )
 ''')
+connection.commit()
+connection.close()
+def start_dialog(message):
+    global all_users_states
+    lock = threading.Lock()
+    with lock:
+        connection_start = sqlite3.connect('Medbot.db')
+        cursor_start = connection_start.cursor()
+        cursor_start.execute("SELECT id FROM Users WHERE chat = ?", (message.chat.id,))
+        data = cursor_start.fetchall()
+        if len(data) == 0:
+            cursor_start.execute('INSERT INTO Users (username, chat) VALUES (?, ?)',
+                                 (message.from_user.username, message.chat.id))
+        connection_start.commit()
+        connection_start.close()
+    chat_bot = Chat()
+    prompt = Prompt
+    chat_bot.start_chat(prompt)
+    btn1 = types.KeyboardButton(text="Экстренный вызов")
+    btn2 = types.KeyboardButton(text="Медицинская консультация")
+    btn3 = types.KeyboardButton(text="Информация о клинике")
+    btn4 = types.KeyboardButton(text="Обратная связь")
+    keyboard = types.ReplyKeyboardMarkup()
+    keyboard.add(btn1, btn2, btn3, btn4)
+    bot.send_message(message.chat.id, bot_greetings, reply_markup=keyboard)
+    all_users_states[message.chat.id] = {"started": True, "Bot": chat_bot, "ready": True, "Vote":[-1, -1, -1, -1]}
+
+
 
 @bot.message_handler(commands = ['start'])
 def start(message):
