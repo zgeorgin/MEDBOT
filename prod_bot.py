@@ -140,7 +140,7 @@ def main(message):
                         connection_vote.close()
                         bot.send_message(message.chat.id, "Большое спасибо за оценку! Она поможет нам стать лучше!")
                         all_users_states[message.chat.id]["started"] = False
-                    return
+                    continue
                 markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
                 btn1 = types.KeyboardButton("0")
                 btn2 = types.KeyboardButton("1")
