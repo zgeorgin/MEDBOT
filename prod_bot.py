@@ -104,6 +104,7 @@ def main(message):
         return
     if message.text == "Возврат в главное меню":
         start_dialog(message)
+        return
     if message.text == "Консультация с дежурным врачом":
         bot.send_message(message.chat.id, text=bot_consultation_message)
         chat_bot.add_message("Напиши краткую сводку по моему состоянию именно в таком виде, в котором её можно будет отправить врачу")
