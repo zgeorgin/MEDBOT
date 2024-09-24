@@ -159,7 +159,7 @@ def main(message):
                 return
 
     if message.text == "Закончить диалог":
-        bot.send_message(message.chat.id, "Спасибо, что воспользовались нашими услугами!")
+        bot.send_message(message.chat.id, 'Спасибо, что воспользовались нашими услугами! Пожалуйста, оцените работу сервиса, нажав кнопку "Обратная связь". Ваше мнение очень важно для нас!')
         chat_bot = None
         all_users_states[message.chat.id]["started"] = False
 
