@@ -83,7 +83,7 @@ def main(message):
             cursor_start.execute('INSERT INTO Chats (username, chat) VALUES (?, ?)',
                                  (message.from_user.username, message.text))
         else:
-            new_data = data[0] + "\n" + message.text
+            new_data = data[0][0] + "\n" + message.text
             cursor_start.execute(f"UPDATE Chats SET chat = '{new_data}' WHERE username = '{message.from_user.username}'")
         connection_main.commit()
         connection_main.close()
