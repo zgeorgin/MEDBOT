@@ -98,9 +98,12 @@ def main(message):
         btn1 = types.KeyboardButton("Консультация с Лией")
         btn2 = types.KeyboardButton("Консультация с дежурным врачом")
         btn3 = types.KeyboardButton("Запись к врачу")
-        markup.add(btn1, btn2, btn3)
+        btn4 = types.KeyboardButton("Возврат в главное меню")
+        markup.add(btn1, btn2, btn3, btn4)
         bot.send_message(message.chat.id, text="Выберите нужную опцию", reply_markup=markup)
         return
+    if message.text == "Возврат в главное меню":
+        start_dialog(message)
     if message.text == "Консультация с дежурным врачом":
         bot.send_message(message.chat.id, text=bot_consultation_message)
         chat_bot.add_message("Напиши краткую сводку по моему состоянию именно в таком виде, в котором её можно будет отправить врачу")
