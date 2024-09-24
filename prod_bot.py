@@ -56,7 +56,7 @@ def start_dialog(message):
     btn2 = types.KeyboardButton(text="Медицинская консультация")
     btn3 = types.KeyboardButton(text="Информация о клинике")
     btn4 = types.KeyboardButton(text="Обратная связь")
-    keyboard = types.ReplyKeyboardMarkup()
+    keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
     keyboard.add(btn1, btn2, btn3, btn4)
     bot.send_message(message.chat.id, bot_greetings, reply_markup=keyboard)
     all_users_states[message.chat.id] = {"started": True, "Bot": chat_bot, "ready": True, "Vote":[-1, -1, -1, -1]}
