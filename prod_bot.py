@@ -73,6 +73,7 @@ def main(message):
     if message.chat.id not in all_users_states.keys():
         start_dialog(message)
     lock = threading.Lock()
+    new_data = None
     with lock:
         connection_main = sqlite3.connect('Medbot.db')
         cursor_start = connection_main.cursor()
@@ -82,6 +83,7 @@ def main(message):
         if len(data) == 0:
             cursor_start.execute('INSERT INTO Chats (username, chat) VALUES (?, ?)',
                                  (message.from_user.username, message.text))
+            new_data = message.text
         else:
             new_data = data[0][0] + "\n" + message.text
             cursor_start.execute(f"UPDATE Chats SET chat = '{new_data}' WHERE username = '{message.from_user.username}'")
@@ -168,12 +170,13 @@ def main(message):
         markup.add(btn1, btn2)
         answer = chat_bot.get_answer()
         bot.send_message(message.chat.id, answer, reply_markup=markup)
-        data += "\n" + answer
+
         lock = threading.Lock()
         with lock:
             connection_user = sqlite3.connect('Medbot.db')
             cursor_start = connection_user.cursor()
-            cursor_start.execute(f'UPDATE Chats SET chat = {data} WHERE username = {message.from_user.username}')
+            new_data += "\n" + answer
+            cursor_start.execute(f"UPDATE Chats SET chat = '{new_data}' WHERE username = '{message.from_user.username}'")
             connection_user.commit()
             connection_user.close()
     else:
