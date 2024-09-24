@@ -56,7 +56,7 @@ def start_dialog(message):
     btn2 = types.KeyboardButton(text="Медицинская консультация")
     btn3 = types.KeyboardButton(text="Информация о клинике")
     btn4 = types.KeyboardButton(text="Обратная связь")
-    keyboard = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    keyboard = types.ReplyKeyboardMarkup()
     keyboard.add(btn1, btn2, btn3, btn4)
     bot.send_message(message.chat.id, bot_greetings, reply_markup=keyboard)
     all_users_states[message.chat.id] = {"started": True, "Bot": chat_bot, "ready": True, "Vote":[-1, -1, -1, -1]}
@@ -96,7 +96,7 @@ def main(message):
         bot.send_message(message.chat.id, bot_emergency)
         return
     if message.text == "Медицинская консультация":
-        markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+        markup = types.ReplyKeyboardMarkup()
         btn1 = types.KeyboardButton("Консультация с Лией")
         btn2 = types.KeyboardButton("Консультация с дежурным врачом")
         btn3 = types.KeyboardButton("Запись к врачу")
@@ -167,7 +167,7 @@ def main(message):
         start_dialog(message)
         return
 
-    markup = types.ReplyKeyboardMarkup(resize_keyboard=True)
+    markup = types.ReplyKeyboardMarkup()
     if not all_users_states[message.chat.id]['ready']:
         return
     if all_users_states[message.chat.id]["started"]:
